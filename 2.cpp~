@@ -1,0 +1,469 @@
+#include "SDL/SDL.h"
+#include <stdio.h>
+#include <math.h>
+#define APPLES 10
+#define SNAKES 1000
+void*modeData;
+int mode,H,W;
+double G,L,M,SNL,K,C;
+
+struct snake{
+    double  x[SNAKES];
+    double  y[SNAKES];
+    int color[SNAKES];
+    double dx[SNAKES];
+    double dy[SNAKES];
+    double m[SNAKES];
+    double r[SNAKES];
+    double applex[APPLES];
+    double appley[APPLES];
+    double appledx[APPLES];
+    double appledy[APPLES];
+    double applem[APPLES];
+    double appler[APPLES];
+};
+
+void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+{
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to set */
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+
+    switch(bpp) {
+    case 1:
+        *p = pixel;
+        break;
+
+    case 2:
+        *(Uint16 *)p = pixel;
+        break;
+
+    case 3:
+        if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+            p[0] = (pixel >> 16) & 0xff;
+            p[1] = (pixel >> 8) & 0xff;
+            p[2] = pixel & 0xff;
+        } else {
+            p[0] = pixel & 0xff;
+            p[1] = (pixel >> 8) & 0xff;
+            p[2] = (pixel >> 16) & 0xff;
+        }
+        break;
+
+    case 4:
+        *(Uint32 *)p = pixel;
+        break;
+    }
+}
+
+void addpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+{
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to set */
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+
+   *(Uint32 *)p += pixel;
+}
+
+void setPixel(SDL_Surface *sc,int x,int y,int c){
+    if(x>=0&&x<W && y>=0 && y< H){
+        putpixel(sc,x,y,c);
+    
+    }
+
+}
+void drawLine(SDL_Surface *sc,int x1, int y1, int x2, int y2,int c) {
+    const int deltaX = abs(x2 - x1);
+    const int deltaY = abs(y2 - y1);
+    const int signX = x1 < x2 ? 1 : -1;
+    const int signY = y1 < y2 ? 1 : -1;
+    //
+    int error = deltaX - deltaY;
+    //
+    setPixel(sc, x2, y2, c);
+    while(x1 != x2 || y1 != y2) {
+        setPixel(sc,x1, y1,c);
+        const int error2 = error * 2;
+        //
+        if(error2 > -deltaY) {
+            error -= deltaY;
+            x1 += signX;
+        }
+        if(error2 < deltaX) {
+            error += deltaX;
+            y1 += signY;
+        }
+    }
+ 
+}
+
+
+void zeroSnake(){
+    int i,x,y;
+    
+    struct snake*sn;
+    sn=(struct snake*)modeData;
+    if(sn==NULL)
+        return;
+    x=rand()%W;    
+    y=rand()%H;    
+    for(i=0;i<SNAKES;i++){
+        sn->x[i]=x;
+        sn->y[i]=y;
+        sn->color[i]=0;
+        sn->dx[i]=0;//((rand()%200)/100.0 - 1.0);
+        sn->dy[i]=0;//((rand()%200)/100.0 - 1.0);
+        sn->m[i]=0.2;
+        sn->r[i]=1;
+    } 
+    sn->m[0]=(10);
+    sn->dx[0]=((rand()%200)/100.0 - 1.0);
+    sn->dy[0]=((rand()%200)/100.0 - 1.0);
+    for(i=0;i<APPLES;i++){
+        sn->applex[i]=rand()%W;
+        sn->appley[i]=rand()%H;
+        sn->appledx[i]=((rand()%200)/100.0 - 1.0)/10;
+        sn->appledy[i]=((rand()%200)/100.0 - 1.0)/10;
+        sn->applem[i]=(rand()%5+5); //* ( 2*(rand()%2) -1);
+        sn->appler[i]=sn->applem[i]*sn->applem[i];
+
+    }
+}
+
+void drawSnake(SDL_Surface* screen){
+    int i,x,y;    
+    struct snake*sn;
+    sn=(struct snake*)modeData;
+    if(sn==NULL)
+        return;
+        
+        
+    SDL_FillRect(screen,NULL, 0x000000); 
+    
+    
+    
+    for(i=0;i<APPLES;i++){
+        int cc;
+        cc=sn->appler[i]*sn->appler[i];
+        for(x=-102;x<=102;x++)
+            for(y=-102;y<=102;y++){
+                int c;
+                c=x*x+y*y;
+                if(c<cc){
+                    if(sn->applex[i]+x>=0 && sn->applex[i]+x<W
+                    &&
+                       sn->appley[i]+y>=0 && sn->appley[i]+y<H
+                    ){
+                        addpixel(screen,sn->applex[i]+x,sn->appley[i]+y,(cc-c)*255/cc);
+                    
+                    }
+                
+                                
+                
+                }   
+            
+            }
+    
+    }
+    
+    for(i=1;i<SNAKES;i++){
+        drawLine(screen,sn->x[i],sn->y[i],sn->x[i-1],sn->y[i-1],0xffffffffffffffff);
+        
+    
+    }
+    
+  	SDL_Flip( screen );   
+}
+void moveSnake(){
+    int i,j;    
+    double rr,f,dx,dy,a,a1,sp1,a2,sp2;
+    struct snake*sn;
+    sn=(struct snake*)modeData;
+    if(sn==NULL)
+        return;
+        
+    for(i=0;i<APPLES;i++){
+        for(j=0;j<i;j++){
+            
+                dx=sn->applex[i] - sn->applex[j];
+                dy=sn->appley[i] - sn->appley[j];
+                rr=dx*dx+dy*dy;
+                if(rr>=0.000001){
+                    if(rr<(sn->appler[i]+sn->appler[j])*(sn->appler[i]+sn->appler[j])){
+                        
+                        f=G*sn->applem[i]*sn->applem[j]/rr;
+                        a=atan2(dy,dx);
+                        sn->appledx[i]+=cos(a)*f/sn->applem[i];
+                        sn->appledy[i]+=sin(a)*f/sn->applem[i];
+                        
+                        sn->appledx[j]-=cos(a)*f/sn->applem[j];
+                        sn->appledy[j]-=sin(a)*f/sn->applem[j];
+                        
+                
+                    }else{
+                    
+                        f=G*sn->applem[i]*sn->applem[j]/rr;
+                        a=atan2(dy,dx);
+                        sn->appledx[i]-=cos(a)*f/sn->applem[i];
+                        sn->appledy[i]-=sin(a)*f/sn->applem[i];
+                        
+                        sn->appledx[j]+=cos(a)*f/sn->applem[j];
+                        sn->appledy[j]+=sin(a)*f/sn->applem[j];
+                        
+                        
+                    }
+                }
+            
+                
+        }    
+        sn->appledx[i]*=1-L;
+        sn->appledy[i]*=1-L; 
+        sn->appledy[i]+=G*M;
+        
+        
+        
+   }
+   for(i=SNAKES-1;i>0;i--){
+    sn->dx[i]=sn->x[i-1]-sn->x[i];
+    sn->dy[i]=sn->y[i-1]-sn->y[i];
+   
+   }
+   for(i=0;i<SNAKES;i++){
+        
+        /*dx=sn->x[i]-sn->x[i+1];
+        dy=sn->y[i]-sn->y[i+1];
+        rr=sqrt(dx*dx+dy*dy));
+        if(1){
+            f=K*(rr-SNL);
+            a=atan2(dy,dx);
+          //  printf("%d\n",(int)(f*100));
+            sn->dx[i]+=f*cos(a)/sn->m[i];
+            sn->dy[i]+=f*sin(a)/sn->m[i];
+            sn->dx[i+1]-=f*cos(a)/sn->m[i+1];
+            sn->dy[i+1]-=f*sin(a)/sn->m[i+1];
+                
+        }*/
+        
+        
+        for(j=0;j<APPLES;j++){
+                dx=sn->x[i] - sn->applex[j];
+                dy=sn->y[i] - sn->appley[j];
+                rr=dx*dx+dy*dy;
+                if(rr>=0.000001){
+                    if(rr<(sn->r[i]+sn->appler[j])*(sn->r[i]+sn->appler[j])){
+                        
+                        f=G*sn->m[i]*sn->applem[j]/rr;
+                        a=atan2(dy,dx);
+                        sn->dx[i]+=cos(a)*f/sn->m[i];
+                        sn->dy[i]+=sin(a)*f/sn->m[i];
+                        
+                        sn->appledx[j]-=cos(a)*f/sn->applem[j];
+                        sn->appledy[j]-=sin(a)*f/sn->applem[j];
+                        
+                
+                    }else{
+                    
+                        f=G*sn->m[i]*sn->applem[j]/rr;
+                        a=atan2(dy,dx);
+                        sn->dx[i]-=cos(a)*f/sn->m[i];
+                        sn->dy[i]-=sin(a)*f/sn->m[i];
+                        
+                        sn->appledx[j]+=cos(a)*f/sn->applem[j];
+                        sn->appledy[j]+=sin(a)*f/sn->applem[j];
+                        
+                        
+                    }
+                }   
+        
+        }
+  
+        sn->dx[i]*=1-L;
+        sn->dy[i]*=1-L; 
+        sn->dy[i]+=G*M;
+        if(sn->dx[i]>C){
+            sn->dx[i]=C;
+        }
+        if(sn->dy[i]>C){
+            sn->dy[i]=C;
+        }
+        if(sn->dx[i]<-C){
+            sn->dx[i]=-C;
+        }
+        if(sn->dy[i]<-C){
+            sn->dy[i]=-C;
+        }  
+   }
+   
+    for(i=0;i<SNAKES;i++){
+         sn->x[i]+=sn->dx[i];
+         sn->y[i]+=sn->dy[i];
+         if(sn->x[i]<0.0){
+            sn->dx[i]=fabs(sn->dx[i]);
+    
+         }
+         if(sn->y[i]<0.0){
+            sn->dy[i]=fabs(sn->dy[i]);
+    
+         }
+         if(sn->x[i]>W){
+            sn->dx[i]=-fabs(sn->dx[i]);
+    
+         }
+         if(sn->y[i]>H){
+             sn->dy[i]=-fabs(sn->dy[i]);
+    
+         }  
+    
+    } 
+    
+    
+    
+    
+    
+    
+    for(i=0;i<APPLES;i++){
+        
+        sn->applex[i]+=sn->appledx[i];
+        sn->appley[i]+=sn->appledy[i];
+        if(sn->applex[i]<0.0){
+            sn->appledx[i]=fabs(sn->appledx[i]);
+        
+        }
+        if(sn->appley[i]<0.0){
+            sn->appledy[i]=fabs(sn->appledy[i]);
+    
+        }
+        if(sn->applex[i]>W){
+            sn->appledx[i]=-fabs(sn->appledx[i]);
+    
+        }
+        if(sn->appley[i]>H){
+            sn->appledy[i]=-fabs(sn->appledy[i]);
+    
+        }
+        if(sn->appledx[i]>C){
+            sn->appledx[i]=C;
+        }
+        if(sn->appledy[i]>C){
+            sn->appledy[i]=C;
+        }
+        if(sn->appledx[i]<-C){
+            sn->appledx[i]=-C;
+        }
+        if(sn->appledy[i]<-C){
+            sn->appledy[i]=-C;
+        } 
+
+    }
+}
+
+void drawStars(SDL_Surface* screen){
+    putpixel(screen,rand() % (screen->w),rand() % (screen->h),rand()); 
+	SDL_Flip( screen ); 
+}
+
+void draw(SDL_Surface* screen){
+    switch (mode){
+        case 1: drawSnake(screen); break;
+        
+        
+        default: drawStars(screen); break;
+    
+    }
+
+
+
+}
+void move(){
+int i;
+    switch(mode){
+        case 1:for(i=0;i<10;i++) moveSnake();break;   
+    
+    }
+
+
+}
+void setMode(int newMode){
+        switch(newMode){
+            case 1:if(mode==1)
+                    break;
+                    
+                if(modeData!=NULL){
+                    free(modeData);
+                }
+                modeData=malloc(2*sizeof(snake));
+                if(modeData!=NULL){
+                    mode=1;
+                    zeroSnake();                    
+                }
+                break;
+                
+              default:if(mode==newMode)
+                        break;
+                    if(modeData!=NULL){
+                        free(modeData);
+                       
+                    }
+                    modeData=NULL;
+                    mode=newMode;
+                   break;   
+            
+            
+        }
+
+
+}
+int main( int argc, char* args[] ) { 
+    int x,y,c,flag;
+	//The images 
+	SDL_Surface* hello = NULL; 
+	SDL_Surface* screen = NULL;
+    SDL_Event event;
+	const SDL_VideoInfo* myPointer;
+    modeData=NULL;
+	flag=1;
+	 //Start SDL 
+	 SDL_Init( SDL_INIT_EVERYTHING ); 
+	 //Set up screen 
+	 SDL_putenv("SDL_VIDEO_WINDOW_POS=0,0");
+	 myPointer = SDL_GetVideoInfo();
+     W=myPointer->current_w;
+     H=myPointer->current_h; 
+       
+	 screen = SDL_SetVideoMode(W , H, 32, SDL_SWSURFACE | SDL_NOFRAME ); 
+	 SDL_ShowCursor(0);
+	 mode=0;
+	 G=10;
+	 L=0.0001;
+	 M=0.001;
+	 SNL=3;
+	 K=0.001;
+	 C=10;
+	 while(flag){
+	    draw(screen);
+	    move();
+
+
+        while(SDL_PollEvent(&event)){
+
+            switch (event.type) {
+                case SDL_KEYDOWN: switch (event.key.keysym.scancode){
+                                  case 9: flag=0; break;
+                                  case 10: setMode(0); break;
+                                  case 11: setMode(1); break;
+                                  
+                                  default:printf("keydown:%d \n",event.key.keysym.scancode); break;
+                                  }    break;
+                case SDL_QUIT: flag=0; break;
+                
+            }
+	    }
+	    
+	 }
+	 
+
+	 
+	  //Quit SDL 
+	  SDL_Quit(); 
+	  return 0;
+}

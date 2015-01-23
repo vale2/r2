@@ -1,0 +1,45 @@
+struct layer{
+    unsigned char *p;
+    int h,w;
+};
+
+struct layer*makeLayer(int w,int h){
+    struct layer *l;
+    l=(struct layer*)malloc(sizeof(struct layer));
+    if(l==NULL)
+        return NULL;
+    l->p=(unsigned char*)malloc(h*w);
+    if(l->p == NULL){
+        free(l);
+        return NULL;
+    
+    }
+    l->h=h;
+    l->w=w;
+    return l;
+}
+void freeLayer(struct layer *p){
+    if(p!=NULL){
+        if(p->p!=NULL)
+            free(p->p);
+         free(p);
+    }
+}
+
+
+struct layer*resizeLayer(struct layer*old,int w,int h){
+    struct layer *n;
+    int x,y;
+    n=makeLayer(w,h);
+    if(n==NULL){
+        freeLayer(old);
+        return NULL;
+    }
+    for(y=0;y<h;y++)
+        for(x=0;x<w;x++){
+            n->p[x+y*w]=old->p[x*old->w/w + (y*old->h/h)*w];
+        }
+    freeLayer(old);
+    return n;
+}
+

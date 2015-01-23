@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo nice --5 ./rabbit  -window 1366x768 -noframe -position 0x0  -calcbitmap 1024x576 

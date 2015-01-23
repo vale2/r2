@@ -1,0 +1,12 @@
+double drawKoef[DRAWKOEFNUM];//PIF:pifDeep,pifNaked,pifColored,pifDWind,pifDScale,pifDAngle,double colorSpeedr,double colorSpeedg,double colorSpeedb,,pifRepeat,pifParity
+double maxDrawKoef[DRAWKOEFNUM]={11,1.001,1.001,100,1000,7000,1000000,1000000,1000000,60.01,1.01};
+double minDrawKoef[DRAWKOEFNUM]={2,0,0,-100,-1000,-7000,0.0000001,0.0000001,0.0000001,1,0};
+
+
+double controllKoef[DRAWKOEFNUM*KOEFNUM];
+double zeros[DRAWKOEFNUM];
+double dkoef[DRAWKOEFNUM];
+double dkoefacc[DRAWKOEFNUM];
+double dkoefaccperiod[DRAWKOEFNUM];
+double koefascell[DRAWKOEFNUM];
+

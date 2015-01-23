@@ -1,0 +1,3 @@
+#!/bin/sh
+git remote add origin https://github.com/vale2/rabbit.git
+git push -u origin master

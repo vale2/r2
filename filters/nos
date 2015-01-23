@@ -1,0 +1,284 @@
+//#include"sdlutils.cpp"/* 
+/*#include<windows.h>
+#include<winbase.h>
+
+long start, frames; */
+int pf[1024][1024];
+int pw[2048*32][101];
+int sn[4096];
+int cs[4096];
+int at[2048][2048];
+int gp[2048][2048];
+/*double turnx(double ang, double x, double y) {
+	return cos(ang) * x + sin(ang) * y;
+}
+
+double turny(double ang, double x, double y) {
+	return cos(ang) * y - sin(ang) * x;
+}*/
+/*
+int drawstar(SDL_Surface* screen, int n, int m, double r, int w) {
+	int i, j;
+	double xt, yt, ang, xo, xoo, yoo;
+	ang = 2 * M_PI / n * m;
+	xt = 0;
+	yt = r;
+	for (i = 0; i < n; i++) {
+		xoo = xt;
+		yoo = yt;
+		xo = xt;
+		xt = turnx(ang, xt, yt);
+		yt = turny(ang, xo, yt);
+		drawLine(screen, xoo + w + screen->w / 2, yoo + w + screen->h / 2, xt + w + screen->w / 2, yt + w + screen->h / 2, rand() % 0x100 + rand() % 0x100 * 0x100 + rand() % 0x100 * 0x10000);
+	}
+}
+*/
+void inline pudPixel(SDL_Surface *s, int x, int y, Uint32 pixel)
+{
+    int bpp = s->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to set */
+    if(x<0||x>=s->w || y<0 || y>=s->h)
+        return;
+    
+    Uint8 *p = ((Uint8 *)s->pixels) + gp[y][x];
+    *(Uint32 *)p = pixel;
+    
+}
+
+unsigned int  inline gedPixel(SDL_Surface *surface, int x, int y)
+{
+    /* Here p is the address to the pixel we want to set */
+    Uint32* p =(Uint32*) (((Uint8 *)surface->pixels) + gp[y][x]);
+    return *p;
+}
+
+
+int initflag=0;
+
+//unsigned char pic[1024*768*3];
+
+int makeTables(int diag, int m, int pitch, int bpp, SDL_Surface *input){
+	int i, j, fl;
+	if(!initflag){
+  		/* 
+		initflag = 1;
+		
+		FILE*f;
+   */
+		FILE*f;
+		f=fopen("cache/pf", "rb");
+		if(f==NULL){
+		    for (i = 0; i < 1024; ++i) {
+			    for (j = 0; j < 1024; ++j) {
+			    	pf[i][j] = round(32*sqrt(i*i + j*j));
+			    }
+
+		    }
+    		f=fopen("cache/pf", "wb");
+    		if(f!=NULL){
+    		    fwrite(&(pf[0][0]),1024*1024*sizeof(int),1,f);
+        		fclose(f);
+	         }
+		}else{
+    		fread(&(pf[0][0]),1024,1024*sizeof(int),f);
+	    	fclose(f);
+	    }
+		f=fopen("cache/pw", "rb");
+		if(f==NULL){
+            for (fl = 0; fl <= 100; fl++) {
+		    	for (i = 0; i < 2048*32; ++i) {
+		    		pw[i][fl]=diag * pow((i / 32. / diag), fl / 2. - 20);
+		    	}
+		    }
+            f=fopen("cache/pw", "wb");
+		    if(f!=NULL){
+		        fwrite(&(pw[0][0]),2048*32*101*sizeof(int),1,f);
+		        fclose(f);
+		    }
+        }else{
+            fread(&(pw[0][0]),2048*32*101*sizeof(int),1,f);
+		    fclose(f);
+		}
+		f=fopen("cache/sn", "rb");
+		if(f==NULL){
+            for (i = 0; i < 4096; ++i) {
+		    	sn[i] = round(1024 * sin(i * 2* M_PI/4096));
+		    }
+		    f=fopen("cache/sn", "wb");
+       		if(f!=NULL){
+
+    		    fwrite(&(sn[0]),4096*sizeof(int),1,f);
+                fclose(f);
+            }
+        }else{
+            fread(&(sn[0]),4096*sizeof(int),1,f);
+		    fclose(f);
+		}
+		f=fopen("cache/cs", "rb");
+		if(f==NULL){
+    		for (i = 0; i < 4096; ++i) {
+    			cs[i] = round(1024 * cos(i * 2* M_PI/4096));
+    		}
+    		f=fopen("cache/cs", "wb");
+       		if(f!=NULL){
+       		    fwrite(&(cs[0]),4096*sizeof(int),1,f);
+    		    fclose(f);
+            }
+
+        }else{
+            fread(&(cs[0]),4096*sizeof(int),1,f);
+		    fclose(f);
+		}
+		f=fopen("cache/at", "rb");
+		if(f==NULL){
+        	for (i = 0; i < 2048; ++i) {
+	    		for (j = 0; j < 2048; ++j) {
+	    			double a;
+	    			a=atan2(i-1024, j-1024);
+	    			if(a < 0.) {
+	    				a=2*M_PI+a;	
+	    			}
+	    			if(a > 2*M_PI) {
+	    				a=a-2*M_PI;	
+	    			}
+	    			at[i][j] = round(4096*a/(2*M_PI));
+	    		}
+	    	}
+	    	f=fopen("cache/at", "wb");
+	        if(f!=NULL){
+    	    	fwrite(&(at[0][0]),2048 * 2048  * sizeof(int),1,f);
+	        	fclose(f);
+	        }    
+        }else{
+            fread(&(at[0][0]),2048 * 2048  * sizeof(int),1,f);
+		    fclose(f);
+		}
+		f=fopen("cache/gp", "rb");
+		if(f==NULL){
+      		for (i = 0; i < diag * 2; i++) {
+    			for (j = 0; j < m; j++) {
+    				gp[i][j] = i * pitch + j * bpp;
+    			}
+       		}
+       		f=fopen("cache/gp", "wb");
+	        if(f!=NULL){
+	    	    fwrite(&(gp[0][0]),2048*2048*sizeof(int),1,f);
+	    	    fclose(f);
+	    	}
+        }else{        
+            fread(&(gp[0][0]),2048*2048*sizeof(int),1,f);
+		    fclose(f);
+		}
+		/*f=fopen("cache/pic.bmp", "rb");
+		fread(pic,54,1,f);
+		fread(pic,1024,768*3,f);
+		fclose(f);
+		for (i = 0; i < 1024; i++) {
+			for (j = 0; j < 768; j++) {
+				putPixel(input, i, 767 - j, pic[(i+j*1024)*3] | ((unsigned) pic[(i+j*1024)*3+1]) * 256 | ((unsigned) pic[(i+j*1024)*3+2]) * 256 * 256);
+			}
+		}*/
+		initflag = 1;/* 
+		start = getTickCount(); */
+	}
+	
+}
+
+
+int filtermega(SDL_Surface* input, SDL_Surface* output, double fl){
+	int i, j;
+	int x, y, a, l;
+	Uint32* p;
+	makeTables(output->h/2, output->w, output->pitch, 32, input);
+	//frames++;
+//	return -1;
+	//sqrt((output->w/2)*(output->w/2)+(output->h/2)*(output->h/2)));
+	for (j = 0, p = (Uint32*) output->pixels; j < output->h; j++, p += output->pitch / 4 - output->w){	
+		for (i = 0; i < output->w; i++, p++){
+			x=(i-output->w/2) ;
+			y=(j-output->h/2);
+			a=at[y+1024][x+1024];
+			l = pf[abs(x)][abs(y)];
+			if(l<0)
+			    l=0;
+			if(l>=2048*32)
+			    l=2048*32-1;
+			l = pw[l][(int) (round(fl * 2) + 20)];
+			x=(cs[a]*l+2048)/(4096) +output->w/2;
+			y=(sn[a]*l+2048)/(4096) +output->h/2;
+			if(x>=0 &&  x<output->w && y>=0 && y<output->h){
+				//*p = 
+			//gedPixel(input, x, y);
+			    putpixel(output,i,j,getpixel(input, x, y));
+			
+			} else {
+				//*p = 0;
+			     putpixel(output,i,j,0);
+			}
+		}
+	}
+	return 0;
+}
+//double ck[KOEFNUM]={};
+
+double controlMega(double*k){
+    return 11;//k[4]; //- k[4];
+    
+
+
+
+}
+
+
+/*
+int nosoundmain(int argc, char *argv[]) {
+	int i, j;
+    SDL_Surface *screen, *lscreen;
+    screen=makeScreen();
+    if(screen==NULL){
+        printf("Can't init screen\n");
+        return 1;
+    }
+	lscreen = cloneScreen(screen);
+	i = 2;
+	for (i = 1; i < 32; i++) {
+		drawLine(lscreen, 0, i * 24, screen->w, i * 24, 0xffffff);
+		drawLine(lscreen, i * 32, 0, i * 32, screen->h, 0xffffff);
+	}
+	j = 1;
+	i = 15;
+	 while (readKey()<0) {
+		i += j; 
+		filtermega(lscreen, screen, i / 5.);
+		if (i == 20 || i == 0) 
+			j = -j;
+		}
+		SDL_Flip( screen );
+	} 
+	while(readKey()<0){
+		//for (j = 1; j < i; j++) {
+			//drawstar(lscreen, i, j, screen->h / 2, 0);
+			//SDL_Flip(screen);	
+		//}
+		i+=j;
+		if (i == 20) {
+			j = 1;
+		} else if (i == 50){
+			j = -1;		
+		}
+		filtermega(lscreen, screen, i / 2.);
+		SDL_Flip(screen);	
+    } 
+	printf("%f",(getTickCount() - start) / (double) frames); 
+	SDL_Quit(); 
+    return 0;
+	
+}*/
+
+
+
+
+
+
+
+

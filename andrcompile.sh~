@@ -1,0 +1,5 @@
+#!/bin/sh
+cp ./andrcontroll.cpp ~/libsdl/project/jni/application/src/controll.cpp
+cd ~/libsdl/
+./build.sh -r
+cd ~/r2/ungl

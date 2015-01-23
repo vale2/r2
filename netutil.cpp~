@@ -1,0 +1,119 @@
+#include<stdio.h>
+#include<sys/types.h>
+#include<netinet/in.h>
+#include<string.h>
+#include<sys/socket.h>
+#include<stdlib.h>
+#include<unistd.h> 
+     #include <stdio.h>
+     #include <errno.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <netinet/in.h>
+     #include <netdb.h>
+     
+     #define PORT    7777
+
+int SVIDanswer(char*p);
+int SVIDquest(char*p);
+int ifSVIDanswer(char*p);
+int connect2SVID();
+int iptalk(int  nsd){
+    char content[129];
+    char c2[129];;
+    int i;
+ 
+     if(fork()){
+        //exit(0);
+        connect2SVID();
+        send(nsd,"Rabbit gives to you controll\n",strlen("Rabbit gives to you controll\n "),0);
+        printf("Outside controll: connected for answers to SVID server at que#%d\n",msgid);
+         while(1){
+                //scanf("%s",content);
+                if(ifSVIDanswer(content)>0){
+                    if(send(nsd,content,strlen(content),0)==-1)
+                        break;           
+                    sscanf(content,"%s",c2);
+                    if(!strcmp(c2,"exit"))
+                        break;    
+                }  
+         }  
+         printf("Closing outgoing socket\n");
+         send(nsd,"exit",5,0);  
+         close(nsd);
+         exit(0);
+     }else{
+            connect2SVID();
+             printf("Outside controll: connected for questions to SVID server at que#%d\n",msgid);
+            while(1){
+                memset(content,0,129);
+                i=recv(nsd,content,128,0);
+                if(i==-1)
+                    break;
+                content[128]=0;
+                printf("\nClient: (%s)\n",content);
+                SVIDquest(content);
+                sscanf(content,"%s",c2);
+                if(!strcmp(c2,"exit"))
+                    break;    
+            }
+           printf("Closing incomming socet\n");
+           SVIDanswer("exit");
+           close(nsd);
+           exit(0); 
+        }
+    return 0;
+}
+
+
+
+int ipserver(){
+    int sd,len,bi,nsd,port;
+    unsigned int i;
+    char content[30];    struct sockaddr_in ser,cli;
+
+    if((sd=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))==-1)
+    {
+        printf("\nSocket problem");
+        return 0;
+    }
+
+    printf("\nSocket created\n");
+    bzero((char*)&cli,sizeof(ser));
+    printf("ENTER PORT NO:\n");
+   // scanf("%d",&port);
+    printf("\nPort Address is %d\n:",PORT);
+    ser.sin_family=AF_INET;
+    ser.sin_port=htons(PORT);
+    ser.sin_addr.s_addr=htonl(INADDR_ANY);
+    bi=bind(sd,(struct sockaddr *)&ser,sizeof(ser));
+
+    if(bi==-1)
+    {
+        printf("\nBind error, Port busy, Plz change port in client and server");
+        return 0;
+    }
+
+    i=sizeof(cli);
+    listen(sd,5);
+    while(1){
+        nsd = accept(sd,((struct sockaddr *)&cli),&i);
+        if(nsd==-1){
+            printf("\nCheck the description parameter\n");
+            continue;
+        }
+        printf("\nConnection accepted!");
+
+        if(fork()){        
+            iptalk(nsd);           
+        }        
+    }
+    //printf("\nBye");
+   // send(nsd,"Offline",10,0);
+    close(sd);
+    return 0;
+}
+
+

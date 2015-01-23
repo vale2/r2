@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sudo nice --5 ./rabbit  -window 300x300 -noframe -position 1366x100&
+sudo nice --5 ./rabbit  -window 300x300 -noframe -position 1766x100&
+
+
+

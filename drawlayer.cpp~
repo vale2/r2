@@ -1,0 +1,1067 @@
+#include"interfer.cpp"
+
+extern GLuint tmpt;
+
+
+void point3d(double x,double y,double z){
+    glBegin(GL_POINTS);
+    glVertex3f (x,y,z);
+//    fprintf(stderr,"point:%f %f ",x,y);
+  //  fprintf(stderr," %f\n",z);
+    
+    glEnd();
+
+
+}
+void  bar3d(double x1,double y1,double z1,double x2,double y2,double z2){
+    glBegin(GL_QUADS);
+    glVertex3f (x1,y1,z1);
+    glVertex3f (x1,y1,z2);
+    glVertex3f (x1,y2,z2);
+    glVertex3f (x1,y2,z1);
+
+    glVertex3f (x1,y1,z1);
+    glVertex3f (x2,y1,z1);
+    glVertex3f (x2,y1,z2);
+    glVertex3f (x1,y1,z2);
+
+
+    glVertex3f (x1,y1,z1);
+    glVertex3f (x1,y2,z1);
+    glVertex3f (x2,y2,z1);
+    glVertex3f (x2,y1,z1);
+
+    glVertex3f (x2,y2,z2);
+    glVertex3f (x2,y1,z2);
+    glVertex3f (x2,y1,z1);
+    glVertex3f (x2,y2,z1);
+
+    glVertex3f (x2,y2,z2);
+    glVertex3f (x2,y2,z1);
+    glVertex3f (x1,y2,z1);
+    glVertex3f (x1,y2,z2);
+
+    glVertex3f (x2,y2,z2);
+    glVertex3f (x1,y2,z2);
+    glVertex3f (x1,y1,z2);
+    glVertex3f (x2,y1,z2);
+
+    glEnd();
+}
+
+void drawLayer(GLuint tex,struct layer*l,double r,double a1,double a2){
+    double cx,cy,cz;
+    double hx,hy,hz;
+    cx=r*cos(a1);
+    cy=r*sin(a1)*cos(a2);
+    cz=r*sin(a1)*sin(a2);
+    
+
+    hx=r*cos(a1+M_PI/2);
+    hy=r*sin(a1+M_PI/2)*cos(a2+M_PI);
+    hz=r*sin(a1+M_PI/2)*sin(a2+M_PI);
+
+    
+    saveGlScreen();
+    glBindTexture(GL_TEXTURE_2D, tmpt);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90,(double)GLW/GLH*aspectKoef,1,1000);
+
+            
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  gluLookAt(cx,cy,cz ,0,0,0, hx,hy,hz);
+  //glDisable(GL_BLEND);
+ 
+  glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
+//  glPointSize(2.0);
+
+  //glBegin(GL_LINE_STRIP);
+  
+  int x,y;
+  double ax,ay,h,w1,w2;
+  unsigned char*p;
+  p=l->p;
+  w1=1./l->w;
+  w2=1./l->h;
+       glPointSize(2);
+     
+  glDisable(GL_TEXTURE_2D);
+  for(y=0;y<l->h;y++)     
+   for(x=0;x<l->w;x++,p++){
+        ax=2.*x/(double)l->w-1;
+        ay=2.*y/(double)l->h-1;
+        h=*p/255.0;
+        glColor4f(h,h,h,1);
+  //      glPointSize(h*3);
+        point3d(ax,ay,0);
+//        bar3d(ax-w1,ay-w2,0,ax+w1,ay+w2,h);
+    }
+  glEnable(GL_TEXTURE_2D);
+    
+    
+  
+ 
+ 
+    saveGlScreen2Tex(tex);
+     //    glFinish();
+  //     glBindTexture(GL_TEXTURE_2D, lsct);
+    
+   //    SDL_GL_SwapBuffers();
+
+    glPopMatrix();
+    glPopAttrib();
+    restoreGlScreen();
+}
+
+void draw3dDises(GLuint tex,struct qs*q,double r,double a1,double a2){
+    double cx,cy,cz;
+    double hx,hy,hz;
+    cx=r*cos(a1);
+    cy=r*sin(a1)*cos(a2);
+    cz=r*sin(a1)*sin(a2);
+    
+
+    hx=r*cos(a1+M_PI/2);
+    hy=r*sin(a1+M_PI/2)*cos(a2+M_PI);
+    hz=r*sin(a1+M_PI/2)*sin(a2+M_PI);
+
+    
+    saveGlScreen();
+    glBindTexture(GL_TEXTURE_2D, tmpt);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90,(double)GLW/GLH,1,1000);
+
+            
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  gluLookAt(cx,cy,cz ,0,0,0, hx,hy,hz);
+  //glDisable(GL_BLEND);
+ 
+  glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
+//  glPointSize(2.0);
+
+  //glBegin(GL_LINE_STRIP);
+  
+  int x,y,z;
+  double ax,ay,h,w1,w2,w3,az;
+  double*p;
+  p=q->dlinDises;
+  w1=1./q->tones;
+  w2=1./q->oqs;
+  w3=1./2/q->oqs;
+       glPointSize(2);
+     
+  glDisable(GL_TEXTURE_2D);
+  for(y=0;y<q->oqs;y++)     
+   for(x=0;x<q->tones;x++)
+   //for(z=0;z<q->tones*2;z++,p++)
+  for(int di=0;di<=q->tones;di++)
+   {
+        int zz;
+        zz=y*(int)q->tones+x;
+        if(zz+di<0 || zz+di>=q->oqs*(int)q->tones)
+            continue;
+        int ddi;
+        ddi=di+q->tones-1;
+        
+        ax=2.*x/(double)q->tones-1;
+        ay=2.*y/(double)q->oqs-1;
+        az=2*di/(double)(q->tones)-1;
+        h=1-p[zz*2*(q->tones)+ddi];
+        glColor4f(h,h,h,1);
+  //      glPointSize(h*3);
+        point3d(ax,ay,az);
+//        bar3d(ax-w1,ay-w2,0,ax+w1,ay+w2,h);
+    }
+  glEnable(GL_TEXTURE_2D);
+    
+    
+  
+ 
+ 
+    saveGlScreen2Tex(tex);
+     //    glFinish();
+  //     glBindTexture(GL_TEXTURE_2D, lsct);
+    
+   //    SDL_GL_SwapBuffers();
+
+    glPopMatrix();
+    glPopAttrib();
+    restoreGlScreen();
+}
+
+
+char spExist[12][10][24];
+
+double spx[12][10][24];
+double spy[12][10][24];
+double spz[12][10][24];
+struct rgb spc[12][10][24];
+struct rgb spc3[12][10][24];
+void line3d(double x1,double y1,double z1,struct rgb c1,double x2,double y2,double z2,struct rgb c2){
+    glBegin(GL_LINES);
+    c1.o=255;
+    c2.o=255;
+    glColor4ubv((const GLubyte*)&c1);
+    glVertex3f (x1,y1,z1);
+
+
+    glColor4ubv((const GLubyte*)&c2);
+    glVertex3f (x2,y2,z2);
+//    fprintf(stderr,"point:%f %f ",x,y);
+  //  fprintf(stderr," %f\n",z);
+    
+    glEnd();
+
+
+}
+struct plate_r{
+    double x1,y1,x2,y2,x3,y3,x4,y4,z1,z2,z3,z4,r,ps;
+    struct rgb c1,c2,c3,c4;    
+    Uint32 tex;
+} platesBuf[250000];
+int platesOrder[250000];
+int platesN;
+double camz,camx,camy;
+
+void plate(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3,
+double x4,double y4,double z4,struct rgb c4,
+int alpha){
+    double x,y,z;
+    x=(x1+x2+x3+x4)/4;
+    y=(y1+y2+y3+y4)/4;
+    z=(z1+z2+z3+z4)/4;
+    c1.o=255-alpha;
+    c2.o=c1.o;
+    c3.o=c1.o;
+    c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=x3;
+    platesBuf[platesN].x4=x4;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=y3;
+    platesBuf[platesN].y4=y4;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=z3;
+    platesBuf[platesN].z4=z4;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c3;
+    platesBuf[platesN].c4=c4;
+    platesBuf[platesN].tex=0;
+    
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+void plate(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3,
+double x4,double y4,double z4,struct rgb c4){
+    double x,y,z;
+    x=(x1+x2+x3+x4)/4;
+    y=(y1+y2+y3+y4)/4;
+    z=(z1+z2+z3+z4)/4;
+//    c1.o=255-alpha;
+  //  c2.o=c1.o;
+   // c3.o=c1.o;
+   // c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=x3;
+    platesBuf[platesN].x4=x4;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=y3;
+    platesBuf[platesN].y4=y4;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=z3;
+    platesBuf[platesN].z4=z4;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c3;
+    platesBuf[platesN].c4=c4;
+    platesBuf[platesN].tex=0;
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+void plate_tex(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3,
+double x4,double y4,double z4,struct rgb c4,Uint32 T){
+    double x,y,z;
+    x=(x1+x2+x3+x4)/4;
+    y=(y1+y2+y3+y4)/4;
+    z=(z1+z2+z3+z4)/4;
+//    c1.o=255-alpha;
+  //  c2.o=c1.o;
+   // c3.o=c1.o;
+   // c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=x3;
+    platesBuf[platesN].x4=x4;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=y3;
+    platesBuf[platesN].y4=y4;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=z3;
+    platesBuf[platesN].z4=z4;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c3;
+    platesBuf[platesN].c4=c4;
+    platesBuf[platesN].tex=T;
+    
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+
+void plate(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3
+){
+    double x,y,z;
+    x=(x1+x2+x3)/3;
+    y=(y1+y2+y3)/3;
+    z=(z1+z2+z3)/3;
+//    c1.o=255-alpha;
+  //  c2.o=c1.o;
+   // c3.o=c1.o;
+   // c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=x3;
+    platesBuf[platesN].x4=-10000;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=y3;
+    platesBuf[platesN].y4=-10000;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=z3;
+    platesBuf[platesN].z4=-10000;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c3;
+    platesBuf[platesN].c4=c1;
+    platesBuf[platesN].tex=0;
+
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+void plate_tex(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3
+,Uint32 T){
+    double x,y,z;
+    x=(x1+x2+x3)/3;
+    y=(y1+y2+y3)/3;
+    z=(z1+z2+z3)/3;
+//    c1.o=255-alpha;
+  //  c2.o=c1.o;
+   // c3.o=c1.o;
+   // c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=x3;
+    platesBuf[platesN].x4=-10000;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=y3;
+    platesBuf[platesN].y4=-10000;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=z3;
+    platesBuf[platesN].z4=-10000;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c3;
+    platesBuf[platesN].c4=c1;
+    platesBuf[platesN].tex=T;
+
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+
+void plate(double x1,double y1,double z1,struct rgb c1, double ps){
+    double x,y,z;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=-10000;
+    platesBuf[platesN].x3=-10000;
+    platesBuf[platesN].x4=-10000;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=-10000;
+    platesBuf[platesN].y3=-10000;
+    platesBuf[platesN].y4=-10000;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=-10000;
+    platesBuf[platesN].z3=-10000;
+    platesBuf[platesN].z4=-10000;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c1;
+    platesBuf[platesN].c3=c1;
+    platesBuf[platesN].c4=c1;
+    platesBuf[platesN].tex=0;
+    platesBuf[platesN].ps=ps;
+
+    platesBuf[platesN].r=(x1-camx)*(x1-camx) +(y1-camy)*(y1-camy)+(z1-camz)*(z1-camz);
+    platesOrder[platesN]=platesN;
+
+    platesN++;
+
+
+}
+
+void plate(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2
+){
+    double x,y,z;
+    x=(x1+x2)/2;
+    y=(y1+y2)/2;
+    z=(z1+z2)/2;
+//    c1.o=255-alpha;
+  //  c2.o=c1.o;
+   // c3.o=c1.o;
+   // c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=-10000;
+    platesBuf[platesN].x4=-10000;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=-10000;
+    platesBuf[platesN].y4=-10000;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=-10000;
+    platesBuf[platesN].z4=-10000;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c2;
+    platesBuf[platesN].c4=c1;
+    platesBuf[platesN].tex=0;
+
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+void plate_tex(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,Uint32 T
+){
+    double x,y,z;
+    x=(x1+x2)/2;
+    y=(y1+y2)/2;
+    z=(z1+z2)/2;
+//    c1.o=255-alpha;
+  //  c2.o=c1.o;
+   // c3.o=c1.o;
+   // c4.o=c1.o;
+
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=-10000;
+    platesBuf[platesN].x4=-10000;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=-10000;
+    platesBuf[platesN].y4=-10000;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=-10000;
+    platesBuf[platesN].z4=-10000;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c2;
+    platesBuf[platesN].c4=c1;
+    platesBuf[platesN].tex=T;
+
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+
+
+void oldplate(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3,
+double x4,double y4,double z4,struct rgb c4,
+int alpha){
+    glBegin(GL_QUADS);    
+    c1.o=255-alpha;
+    c2.o=c1.o;
+    c3.o=c1.o;
+    c4.o=c1.o;
+    
+    glColor4ubv((const GLubyte*)&c1);
+    glVertex3f (x1,y1,z1);
+
+
+    glColor4ubv((const GLubyte*)&c2);
+    glVertex3f (x2,y2,z2);
+
+    glColor4ubv((const GLubyte*)&c3);
+    glVertex3f (x3,y3,z3);
+    glColor4ubv((const GLubyte*)&c4);
+    glVertex3f (x4,y4,z4);
+//    fprintf(stderr,"point:%f %f ",x,y);
+  //  fprintf(stderr," %f\n",z);
+    
+    glEnd();
+
+
+
+}
+void plateOp(double x1,double y1,double z1,struct rgb c1,
+double x2,double y2,double z2,struct rgb c2,
+double x3,double y3,double z3,struct rgb c3,
+double x4,double y4,double z4,struct rgb c4,
+int alpha){
+    double x,y,z;
+    x=(x1+x2+x3+x4)/4;
+    y=(y1+y2+y3+y4)/4;
+    z=(z1+z2+z3+z4)/4;
+    
+    platesBuf[platesN].x1=x1;
+    platesBuf[platesN].x2=x2;
+    platesBuf[platesN].x3=x3;
+    platesBuf[platesN].x4=x4;
+    platesBuf[platesN].y1=y1;
+    platesBuf[platesN].y2=y2;
+    platesBuf[platesN].y3=y3;
+    platesBuf[platesN].y4=y4;
+    platesBuf[platesN].z1=z1;
+    platesBuf[platesN].z2=z2;
+    platesBuf[platesN].z3=z3;
+    platesBuf[platesN].z4=z4;
+    platesBuf[platesN].c1=c1;
+    platesBuf[platesN].c2=c2;
+    platesBuf[platesN].c3=c3;
+    platesBuf[platesN].c4=c4;
+    platesBuf[platesN].tex=0;
+    platesBuf[platesN].r=(x-camx)*(x-camx) +(y-camy)*(y-camy)+(z-camz)*(z-camz);
+    platesOrder[platesN]=platesN;
+    platesN++;
+    
+}
+double randLen=0;
+void drplateOp(int pln){
+    
+    if(platesBuf[pln].z3>-9999){
+        if(platesBuf[pln].tex>0){
+            glEnable(GL_TEXTURE_2D);
+            
+            glBindTexture(GL_TEXTURE_2D, platesBuf[pln].tex);
+          
+            glBegin(GL_TRIANGLE_STRIP);    
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c1));
+            glTexCoord2f (0,0);
+            glVertex3f (platesBuf[pln].x1,platesBuf[pln].y1,platesBuf[pln].z1);
+
+            
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c2));
+            glTexCoord2f (0,8);
+            glVertex3f (platesBuf[pln].x2,platesBuf[pln].y2,platesBuf[pln].z2);
+
+            if(platesBuf[pln].z4>-9999){
+                glTexCoord2f (8,0);
+                glColor4ubv((const GLubyte*)&(platesBuf[pln].c4));
+                glVertex3f (platesBuf[pln].x4,platesBuf[pln].y4,platesBuf[pln].z4);
+            }
+    
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c3));
+            glTexCoord2f (8,8);
+            glVertex3f (platesBuf[pln].x3,platesBuf[pln].y3,platesBuf[pln].z3);
+            glEnd();
+            
+            glDisable(GL_TEXTURE_2D);
+        }else{
+            glBegin(GL_TRIANGLE_STRIP);    
+
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c1));
+            glVertex3f (platesBuf[pln].x1,platesBuf[pln].y1,platesBuf[pln].z1);
+
+
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c2));
+            glVertex3f (platesBuf[pln].x2,platesBuf[pln].y2,platesBuf[pln].z2);
+
+            if(platesBuf[pln].z4>-9999){
+                glColor4ubv((const GLubyte*)&(platesBuf[pln].c4));
+                glVertex3f (platesBuf[pln].x4,platesBuf[pln].y4,platesBuf[pln].z4);
+
+            }
+    
+        
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c3));
+            glVertex3f (platesBuf[pln].x3,platesBuf[pln].y3,platesBuf[pln].z3);
+            glEnd();
+    
+        }
+    
+    }else if(platesBuf[pln].z2>-9999){
+        if(platesBuf[pln].tex>0){
+            glEnable(GL_TEXTURE_1D);
+            
+            glBindTexture(GL_TEXTURE_1D, platesBuf[pln].tex);
+            glBegin(GL_LINES);    
+
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c1));
+            glTexCoord1f (0+randLen);
+            glVertex3f (platesBuf[pln].x1,platesBuf[pln].y1,platesBuf[pln].z1);
+
+
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c2));
+            glTexCoord1f (8+randLen);
+
+            glVertex3f (platesBuf[pln].x2,platesBuf[pln].y2,platesBuf[pln].z2);
+
+            glEnd();
+            glDisable(GL_TEXTURE_1D);
+
+        }else{    
+            glBegin(GL_LINES);    
+
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c1));
+            glVertex3f (platesBuf[pln].x1,platesBuf[pln].y1,platesBuf[pln].z1);
+
+
+            glColor4ubv((const GLubyte*)&(platesBuf[pln].c2));
+            glVertex3f (platesBuf[pln].x2,platesBuf[pln].y2,platesBuf[pln].z2);
+
+            glEnd();
+        }
+    }else{
+          //ps=platesBuf[pln].ps;
+          //if(fabs(lastps-ps)>0.1){
+          //          lastps=ps;
+          //          glEnd();
+          
+         // glPointSize(platesBuf[pln].ps);
+          glBegin(GL_POINTS);
+                //}
+          glColor4ubv((const GLubyte*)&(platesBuf[pln].c1));
+          glVertex3f (platesBuf[pln].x1,platesBuf[pln].y1,platesBuf[pln].z1);
+          glEnd();
+    }
+
+
+}
+
+int cmpfunc (const void * a, const void * b){
+    int aa,bb;
+    aa=*(int*)a;
+    bb=*(int*)b;
+    if(platesBuf[aa].r> platesBuf[bb].r)
+        return -1;
+   return 1;
+}
+
+void   sortPlates(){
+    qsort(platesOrder, platesN, sizeof(int), cmpfunc);    
+}
+void drawAllPlates(){
+  sortPlates();
+  int i;
+    //glBegin(GL_QUADS);    
+
+    randLen+=0.06;//(rand()%1000)/1000.0;
+    if(randLen>1.)
+        randLen-=1;
+    for(i=0;i<platesN;i++){
+
+        drplateOp(platesOrder[i]);
+  
+    }
+
+
+}
+
+double getLightnes(struct rgb c){
+    return (c.r/255.+c.g/255.+c.b/255.)/3.;
+
+
+}
+double getLightnesOp(struct rgb c){
+    return (c.r/255.+c.g/255.+c.b/255.)*(255-c.o)/3./255.;
+}
+
+
+//int spiralDisRenumber[13]={0,12,7,5,3,4,8,9,6,2,10,1,11};
+#include"my_glut32.cpp"
+
+void draw3dDisesSpiral(GLuint tex,struct qs*q,double r,double a1,double a2,double a3,double pw,double rpw,double r0,double fov,double len,double rasum,double palpha, double pzero,double lzero,double normLen,double disValueKoef,double minPointValue,double lineWidth,double platesType,double sideshift){
+    int spiralDisRenumber[13];//={0,12,7,5,3,4,8,9,6,2,10,1,11};
+    double spiralDisKoef[13];//={1,1,1,1,1,1,0.7,0.7,0.6,0.6,0.6,0.6,0.6};
+    
+    for(i=0;i<13;i++){
+        spiralDisRenumber[i]=getOpt("spiralDisRenumber",i);
+        spiralDisKoef[i]=getOpt("spiralDisKoef",i);
+    }
+
+    glLineWidth(lineWidth);
+/*
+    double cx,cy,cz;
+    double hx,hy,hz;
+    
+    cx=r*cos(a1);
+    cy=r*sin(a1)*cos(a2);
+    cz=r*sin(a1)*sin(a2);
+    
+
+    hx=r*cos(a1+M_PI/2);
+    hy=r*sin(a1+M_PI/2)*cos(a2+M_PI);
+    hz=r*sin(a1+M_PI/2)*sin(a2+M_PI);
+
+    
+//    saveGlScreen();
+    glBindTexture(GL_TEXTURE_2D, tmpt);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushMatrix();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(fov,(double)GLW/GLH,0.1,1000);
+
+            
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  camz=cz;
+  camx=cx;
+  camy=cy;
+  platesN=0;
+  gluLookAt(cx,cy,cz ,0,0,0, hx,hy,hz);
+  //glDisable(GL_BLEND);
+ 
+  glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//  glPointSize(2.0);
+
+  //glBegin(GL_LINE_STRIP);
+  */
+  
+  start3d_3a(r,a1,a2,a3,fov);
+  int x,y,z;
+  double ax,ay,h,w1,w2,w3,az;
+  double*p;
+  struct rgb c,c2,c3;
+  p=q->dlinDises;
+  w1=1./q->tones;
+  w2=1./q->oqs;
+  w3=1./2/q->oqs;
+     
+  glDisable(GL_TEXTURE_2D);
+  int neOp;
+  neOp=1;
+  if(platesType<0.5){
+    neOp=0;
+  }
+  
+  double ra,rb;
+  ra=0.5+rasum;
+  rb=0.5-rasum;
+  double allmm=0;
+  double partmm=0;
+  for(y=0;y<q->oqs;y++)     
+   for(x=0;x<q->tones;x++){
+            allmm+=q->mm05[x+y*(q->tones)];
+   }
+  
+  for(x=0;x<12;x++)
+    for(y=0;y<10;y++)
+        for(z=0;z<24;z++)
+            spExist[x][y][z]=0;
+  for(y=0;y<q->oqs;y++)     
+   for(x=0;x<q->tones;x++){
+   //for(z=0;z<q->tones*2;z++,p++)
+     double ikoefs[13];
+     double i3koefs[13];
+     int zz;  
+     zz=y*(int)q->tones+x;
+     partmm+=q->mm05[x+y*(q->tones)];
+     if(neOp){
+            for(int i=0;i<=12;i++){
+                    ikoefs[i]=getDLD(*q,x,y,i);
+                    i3koefs[i]=getDLD3(*q,x,y,i);
+        }
+        c=calcIColor(ikoefs,i3koefs,q->ks[zz]);
+     }else{
+        for(int i=0;i<=12;i++){
+                    ikoefs[i]=getDLD(*q,x,y,i);
+        }
+        c2=rgbCorrector(calcIColorOp(ikoefs));     
+     }
+    
+  for(int rdi=0;rdi<=q->tones;rdi++)
+   {    int di;
+        di=spiralDisRenumber[rdi];
+        
+        double l,a,r;
+        if(zz+di<0 || zz+di>=q->oqs*(int)q->tones)
+            continue;
+        int ddi;
+        
+        ddi=di+q->tones-1;
+        
+        ay=len*(2*   (normLen*(x/(double)q->tones+y)/(double)q->oqs  +(1-normLen)*partmm/allmm     )-1);
+        a=2*M_PI*x/(double)q->tones;
+        r=pow(rdi/(double)q->tones+r0,rpw);
+        double d;
+        d=(x/(double)q->tones+y)/(double)q->oqs;
+        r*=ra*d+rb*(1-d);
+        
+        ax=r*cos(a)+sideshift;
+        az=r*sin(a);
+        
+        //az=2*di/(double)(q->tones)-1;
+        unsigned  hh;
+        glPointSize(0.01+4*hh/255);
+        if(neOp){
+            if(di!=0){
+                hh=disValueKoef*255*pow(p[zz*2*(q->tones)+ddi],pw);
+                if(h>255)
+                    h=255;
+            }else{
+                hh=255*pow(p[zz*2*(q->tones)+ddi],pw);
+            }
+            c2.r=c.r*hh/255;
+            c2.g=c.g*hh/255;
+            c2.b=c.b*hh/255;
+            if(correctColorFlag){
+                        c2=rgbCorrector(c2);
+            }
+        }else{
+            if(di!=0){
+                hh=255*pow(p[zz*2*(q->tones)+ddi],pw*disValueKoef);
+               // if(h>255)
+                 //   h=255;
+            }else{
+                hh=255*pow(p[zz*2*(q->tones)+ddi],pw);
+            }
+//            if(correctColorFlag){
+  //                      c2=rgbCorrector(c2);
+    //        }
+            //c2=c;
+            c2.o=255-hh;
+        
+        
+        }
+        spx[x][y][rdi]=ax;
+        spy[x][y][rdi]=ay;
+        spz[x][y][rdi]=az;
+        spc[x][y][rdi]=c2;
+        spExist[x][y][rdi]=1;
+        //spc3[x][y][di]=c3;
+        int dr;
+        dr=0;
+        if(pzero<1.){
+            double pp;
+             if(y>0 && x>0){
+                
+                if(neOp){
+                    pp=(getLightnes(c2)+getLightnes(spc[x-1][y][rdi])+getLightnes(spc[x-1][y-1][rdi])+getLightnes(spc[x][y-1][rdi]))/4.;
+                if(pp>pzero){
+                plate(ax,ay,az,c2,
+                spx[x-1][y][rdi],spy[x-1][y][rdi],spz[x-1][y][rdi],spc[x-1][y][rdi],
+                spx[x-1][y-1][rdi],spy[x-1][y-1][rdi],spz[x-1][y-1][rdi],spc[x-1][y-1][rdi],
+                spx[x][y-1][rdi],spy[x][y-1][rdi],spz[x][y-1][rdi],spc[x][y-1][rdi],
+                palpha*255
+                
+                
+                );dr=1;}
+
+
+                }else{
+                    pp=1- c2.o/1024. + spc[x-1][y][rdi].o/1024. + spc[x-1][y-1][rdi].o/1024. +spc[x][y-1][rdi].o/1024.;
+                if(pp>pzero){
+                plateOp(ax,ay,az,c2,
+                spx[x-1][y][rdi],spy[x-1][y][rdi],spz[x-1][y][rdi],spc[x-1][y][rdi],
+                spx[x-1][y-1][rdi],spy[x-1][y-1][rdi],spz[x-1][y-1][rdi],spc[x-1][y-1][rdi],
+                spx[x][y-1][rdi],spy[x][y-1][rdi],spz[x][y-1][rdi],spc[x][y-1][rdi],
+                palpha*255
+                
+                
+                );dr=1;}
+                
+                }
+                
+            
+            }else   
+                      if(y>1){
+
+                 if(neOp){
+                    pp=(getLightnes(c2)+getLightnes(spc[q->tones-1][y-1][rdi])+getLightnes(spc[q->tones-1][y-2][rdi])+getLightnes(spc[x][y-2][rdi]))/4.;
+                if(pp>pzero){
+                plate(ax,ay,az,c2,
+                spx[q->tones-1][y-1][rdi],spy[q->tones-1][y-1][rdi],spz[q->tones-1][y-1][rdi],spc[q->tones-1][y-1][rdi],
+                spx[q->tones-1][y-2][rdi],spy[q->tones-1][y-2][rdi],spz[q->tones-1][y-2][rdi],spc[q->tones-1][y-2][rdi],
+                spx[x][y-1][rdi],spy[x][y-1][rdi],spz[x][y-1][rdi],spc[x][y-1][rdi],
+                palpha*255
+                
+                
+                );dr=1;}
+
+                }else{
+                    pp=1- c2.o/1024. + spc[q->tones-1][y-1][rdi].o/1024. + spc[q->tones-1][y-2][rdi].o/1024. +spc[x][y-2][rdi].o/1024.;
+                
+                if(pp>pzero){
+                plateOp(ax,ay,az,c2,
+                spx[q->tones-1][y-1][rdi],spy[q->tones-1][y-1][rdi],spz[q->tones-1][y-1][rdi],spc[q->tones-1][y-1][rdi],
+                spx[q->tones-1][y-2][rdi],spy[q->tones-1][y-2][rdi],spz[q->tones-1][y-2][rdi],spc[q->tones-1][y-2][rdi],
+                spx[x][y-1][rdi],spy[x][y-1][rdi],spz[x][y-1][rdi],spc[x][y-1][rdi],
+                palpha*255
+                
+                
+                );dr=1;}
+
+                }
+
+
+            
+            }
+            
+            
+            
+        }
+
+       if(!dr || 1){
+        if(getLightnes(c2)>=minPointValue){    
+            glColor4ubv((const GLubyte*)&c2);
+      //  glColor4f(h,h,h,1);
+  //      glPointSize(h*3);
+        
+            point3d(ax,ay,az);
+        }
+//        bar3d(ax-w1,ay-w2,0,ax+w1,ay+w2,h);
+        double pp;
+        if(lzero<1.){
+                if(x>0){
+                    pp=(getLightnes(c2)+getLightnes(spc[x-1][y][rdi]))/2.;
+                    if(pp>lzero)
+                        line3d(ax,ay,az,c2,spx[x-1][y][rdi],spy[x-1][y][rdi],spz[x-1][y][rdi],spc[x-1][y][rdi]);
+                }else
+                if(y>1){
+                    pp=(getLightnes(c2)+getLightnes(spc[q->tones-1][y-1][rdi]))/2.;
+                    if(pp>lzero)
+                        line3d(ax,ay,az,c2,spx[q->tones-1][y-1][rdi],spy[q->tones-1][y-1][rdi],spz[q->tones-1][y-1][rdi],spc[q->tones-1][y-1][rdi]);
+        
+                }
+                if(y>0){
+                    pp=(getLightnes(c2)+getLightnes(spc[x][y-1][rdi]))/2.;
+                    if(pp>lzero)
+                        line3d(ax,ay,az,c2,spx[x][y-1][rdi],spy[x][y-1][rdi],spz[x][y-1][rdi],spc[x][y-1][rdi]);
+                }
+                if(rdi>0 &&spExist[x][y][rdi-1]){
+                    pp=(getLightnes(c2)+getLightnes(spc[x][y][rdi-1]))/2.;
+                    if(pp>lzero)
+                        line3d(ax,ay,az,c2,spx[x][y][rdi-1],spy[x][y][rdi-1],spz[x][y][rdi-1],spc[x][y][rdi-1]);
+                }
+            }
+        }
+    
+      }
+    
+  }
+  
+//  if(!neOp){
+/*    drawAllPlates();
+  //}
+  glEnable(GL_TEXTURE_2D);
+    
+    
+  
+ 
+ 
+    saveGlScreen2Tex(tex);
+     //    glFinish();
+  //     glBindTexture(GL_TEXTURE_2D, lsct);
+    
+   //    SDL_GL_SwapBuffers();
+
+    glPopMatrix();
+    glPopAttrib();
+  //  restoreGlScreen();
+*/
+    end3d_3a(tex);
+}
+
+
+
+void qs2layer(struct qs*r,struct layer*l){
+    if(l->p==NULL){
+        l->p=(unsigned char*)malloc(r->tones * (int)r->oqs);
+        l->w=r->tones;
+        l->h=r->oqs;    
+        if(l->p!=NULL){
+            fprintf(stderr,"qs2layer malloc ok");
+            fprintf(stderr,"%d %d",(int)l->w,(int)l->h);
+        
+        }
+    }
+    int x,y;
+    double*q;
+    unsigned char*p;
+    for(y=0,q=r->ks,p=l->p;y<l->h;y++){
+        for(x=0;x<l->w;x++,p++,q++){
+            *p=255**q;
+        }
+    
+    }    
+
+
+
+}
+

@@ -1,0 +1,3 @@
+void checkRecvData();
+void mySend(char*s);
+void myDisconnect();

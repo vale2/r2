@@ -1,0 +1,5 @@
+g++ -I /usr/include/SDL   -o controll ./controll.cpp -lSDL -lGL  -lavcodec   -D__STDC_CONSTANT_MACROS -L/usr/local/lib
+g++ -I /usr/include/SDL   -o rabbit ./rabbit.cpp     -lSDL -lGL -lportaudio  -lavcodec   -D__STDC_CONSTANT_MACROS -L/usr/local/lib
+
+
+
